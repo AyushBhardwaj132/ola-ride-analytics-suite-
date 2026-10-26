@@ -1,0 +1,29 @@
+# Python bytecode & environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Large SQLite analytics database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Application logs
+*.log

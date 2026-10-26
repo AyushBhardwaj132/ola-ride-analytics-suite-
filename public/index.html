@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLA Ride Analytics | Executive Intelligence & SQL Studio</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Header Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-section">
+                <div class="brand-logo-badge">
+                    <span class="ola-icon">⚡</span>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        <h1>OLA ANALYTICS</h1>
+                        <span class="badge-tag">POWER BI & SQL SUITE</span>
+                    </div>
+                    <p class="brand-sub">Bengaluru Mobility Intelligence • 103,024 Bookings Analyzed</p>
+                </div>
+            </div>
+
+            <!-- Global Live Stats Badge -->
+            <div class="header-meta">
+                <div class="status-pill">
+                    <span class="pulse-dot"></span>
+                    <span class="status-label">SQLite Engine Active</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-val" id="header-rides-count">103,024</span>
+                    <span class="quick-lbl">Total Trips</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-val" id="header-rev-count">₹35.1M</span>
+                    <span class="quick-lbl">Net Revenue</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Filter Control Bar -->
+    <section class="filter-bar">
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="filter-vehicle"><span class="filter-icon">🚗</span> Vehicle Type</label>
+                <select id="filter-vehicle" class="select-control">
+                    <option value="All">All Vehicles (7)</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-status"><span class="filter-icon">🎯</span> Booking Status</label>
+                <select id="filter-status" class="select-control">
+                    <option value="All">All Statuses</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-payment"><span class="filter-icon">💳</span> Payment Method</label>
+                <select id="filter-payment" class="select-control">
+                    <option value="All">All Payment Modes</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-date-start"><span class="filter-icon">📅</span> From Date</label>
+                <input type="date" id="filter-date-start" class="date-control" min="2024-07-01" max="2024-07-31">
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-date-end"><span class="filter-icon">📅</span> To Date</label>
+                <input type="date" id="filter-date-end" class="date-control" min="2024-07-01" max="2024-07-31">
+            </div>
+
+            <div class="filter-actions">
+                <button id="btn-reset-filters" class="btn btn-secondary" title="Reset all filters">
+                    <span class="btn-icon">↺</span> Reset
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tab-nav">
+        <div class="nav-container">
+            <button class="nav-tab active" data-tab="overview">
+                <span class="tab-emoji">📊</span> Overview & Trends
+            </button>
+            <button class="nav-tab" data-tab="vehicles">
+                <span class="tab-emoji">🚗</span> Fleet & Vehicles
+            </button>
+            <button class="nav-tab" data-tab="revenue">
+                <span class="tab-emoji">💰</span> Revenue & Payments
+            </button>
+            <button class="nav-tab" data-tab="cancellations">
+                <span class="tab-emoji">⚠️</span> Cancellation Insights
+            </button>
+            <button class="nav-tab" data-tab="sql-studio">
+                <span class="tab-emoji">⚡</span> SQL Studio & Presets
+            </button>
+            <button class="nav-tab" data-tab="explorer">
+                <span class="tab-emoji">📑</span> Data Explorer
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- ================= TAB 1: OVERVIEW ================= -->
+        <section id="tab-overview" class="tab-pane active">
+            <!-- 6 Glowing KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">TOTAL BOOKINGS</span>
+                        <span class="kpi-badge emerald">100% Vol</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-total-bookings">--</span>
+                        <div class="kpi-icon-wrap emerald">📋</div>
+                    </div>
+                    <div class="kpi-subtext">
+                        <span class="highlight-text" id="kpi-daily-avg">~3,323</span> rides/day across Bengaluru
+                    </div>
+                </div>
+
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">FULFILLED GMV (REVENUE)</span>
+                        <span class="kpi-badge emerald">INR</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-revenue">--</span>
+                        <div class="kpi-icon-wrap emerald">₹</div>
+                    </div>
+                    <div class="kpi-subtext">
+                        Gross Bookings: <span id="kpi-gross-value">--</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">SUCCESS RATE</span>
+                        <span class="kpi-badge emerald" id="kpi-success-pct">--%</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-success-count">--</span>
+                        <div class="kpi-icon-wrap emerald">✓</div>
+                    </div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar bg-emerald" id="bar-success" style="width: 62%;"></div>
+                    </div>
+                </div>
+
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">TOTAL CANCELLATION RATE</span>
+                        <span class="kpi-badge rose" id="kpi-cancel-pct">--%</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-cancelled-count">--</span>
+                        <div class="kpi-icon-wrap rose">✕</div>
+                    </div>
+                    <div class="kpi-subtext">
+                        Driver: <b id="sub-driver-cancel">--%</b> | Rider: <b id="sub-cust-cancel">--%</b>
+                    </div>
+                </div>
+
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">DRIVER NOT FOUND</span>
+                        <span class="kpi-badge amber" id="kpi-not-found-pct">--%</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-not-found-count">--</span>
+                        <div class="kpi-icon-wrap amber">🔍</div>
+                    </div>
+                    <div class="kpi-subtext">
+                        Unallocated trips due to supply gap
+                    </div>
+                </div>
+
+                <div class="kpi-card glass-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">AVG TRIP & RATINGS</span>
+                        <span class="kpi-badge violet">SLA Score</span>
+                    </div>
+                    <div class="kpi-value-row">
+                        <span class="kpi-value" id="kpi-avg-distance">-- km</span>
+                        <div class="kpi-icon-wrap violet">★</div>
+                    </div>
+                    <div class="kpi-subtext">
+                        Driver: <b id="kpi-driver-rating">4.0★</b> | Rider: <b id="kpi-cust-rating">4.0★</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card glass-card span-2">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Daily Booking Volume & Revenue Trend</h3>
+                            <span class="card-caption">Fulfillment trends, daily spikes, and gross revenue evolution</span>
+                        </div>
+                        <div class="chart-pill-selector">
+                            <button class="pill-btn active" data-metric="volume">Ride Volume</button>
+                            <button class="pill-btn" data-metric="revenue">Revenue (₹)</button>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-daily-trend"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Booking Status Breakdown</h3>
+                            <span class="card-caption">Proportion of success vs cancellations</span>
+                        </div>
+                    </div>
+                    <div class="chart-body donut-chart-body">
+                        <canvas id="chart-status-donut"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>24-Hour Demand & Hourly Intensity</h3>
+                            <span class="card-caption">Peak morning & evening rush hours</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-hourly"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card span-2">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Top 10 High-Traffic Pickup Hotspots (Bengaluru)</h3>
+                            <span class="card-caption">Demand concentration across key commercial & residential zones</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-hotspots"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: VEHICLE & FLEET ================= -->
+        <section id="tab-vehicles" class="tab-pane">
+            <div class="section-banner glass-card">
+                <div class="banner-content">
+                    <h2>Fleet & Category Performance Analysis</h2>
+                    <p>Comparative metrics across all 7 vehicle tiers: Auto, Bike, eBike, Mini, Prime Sedan, Prime SUV, and Prime Plus.</p>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card glass-card span-2">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Rides & Revenue by Vehicle Type</h3>
+                            <span class="card-caption">Comparison of trip count vs completed revenue generated</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-vehicle-volume"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Avg Ride Distance per Vehicle (km)</h3>
+                            <span class="card-caption">SQL Query #2: Distance profile per vehicle category</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-vehicle-distance"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Summary Grid -->
+            <div class="fleet-cards-grid" id="fleet-cards-container">
+                <!-- Dynamically populated fleet cards -->
+            </div>
+
+            <div class="charts-row" style="margin-top: 1.5rem;">
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Driver vs Customer Ratings by Vehicle</h3>
+                            <span class="card-caption">SQL Query #8: Satisfaction benchmarks</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-vehicle-ratings"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card span-2">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Turnaround Times (V_TAT vs C_TAT in Seconds)</h3>
+                            <span class="card-caption">Vehicle search turnaround time vs customer boarding response</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-vehicle-tat"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: REVENUE & PAYMENTS ================= -->
+        <section id="tab-revenue" class="tab-pane">
+            <div class="section-banner glass-card">
+                <div class="banner-content">
+                    <h2>Revenue Dynamics & Payment Breakdown</h2>
+                    <p>Financial distribution across payment methods (UPI, Cash, Cards) and high-value customer analytics.</p>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Revenue by Payment Method (INR)</h3>
+                            <span class="card-caption">SQL Query #7 & #9: Value share across payment channels</span>
+                        </div>
+                    </div>
+                    <div class="chart-body donut-chart-body">
+                        <canvas id="chart-payment-revenue"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card span-2">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Top 10 High-Value Customers</h3>
+                            <span class="card-caption">SQL Query #4: Frequent power riders by completed rides and total spend</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="table-top-customers">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Customer ID</th>
+                                    <th>Total Rides</th>
+                                    <th>Successful</th>
+                                    <th>Total Spend (INR)</th>
+                                    <th>Avg Rating</th>
+                                    <th>Loyalty Tier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: CANCELLATIONS ================= -->
+        <section id="tab-cancellations" class="tab-pane">
+            <div class="section-banner glass-card">
+                <div class="banner-content">
+                    <h2>Cancellation Friction & Operational Diagnostics</h2>
+                    <p>Root cause analysis behind driver cancellations, customer drop-offs, and incomplete trips.</p>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Driver Cancellation Reasons</h3>
+                            <span class="card-caption">SQL Query #5: Personal & car issues, rider hygiene, capacity</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-driver-reasons"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-card">
+                    <div class="card-title-bar">
+                        <div class="title-with-desc">
+                            <h3>Customer Cancellation Reasons</h3>
+                            <span class="card-caption">SQL Query #3: Driver stationary, asked to cancel, AC issues</span>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chart-customer-reasons"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incomplete Rides Card -->
+            <div class="chart-card glass-card" style="margin-top: 1.5rem;">
+                <div class="card-title-bar">
+                    <div class="title-with-desc">
+                        <h3>Incomplete Rides Diagnostics</h3>
+                        <span class="card-caption">SQL Query #10: Breakdown of incomplete journeys and logged incident causes</span>
+                    </div>
+                </div>
+                <div class="incomplete-grid" id="incomplete-reasons-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: SQL QUERY STUDIO ================= -->
+        <section id="tab-sql-studio" class="tab-pane">
+            <div class="sql-studio-layout">
+                <!-- Sidebar: 10 Presets -->
+                <div class="sql-presets-sidebar glass-card">
+                    <div class="sidebar-header">
+                        <h3>Project SQL Queries</h3>
+                        <span class="badge-tag">10 Prebuilt</span>
+                    </div>
+                    <p class="sidebar-hint">Click any query below to inspect and execute against the 103,024 record database in real-time.</p>
+                    <div class="presets-list" id="presets-list">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Main Query Editor & Runner -->
+                <div class="sql-main-panel">
+                    <div class="sql-editor-card glass-card">
+                        <div class="editor-header">
+                            <div>
+                                <h3 id="current-query-title">SQL Query Runner</h3>
+                                <p id="current-query-desc">Select a preset or craft your own analytical query.</p>
+                            </div>
+                            <div class="editor-actions">
+                                <button id="btn-run-sql" class="btn btn-primary">
+                                    <span class="btn-icon">▶</span> Run Query
+                                </button>
+                                <button id="btn-export-csv" class="btn btn-secondary">
+                                    <span class="btn-icon">⬇</span> Export CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="editor-wrap">
+                            <textarea id="sql-input" class="sql-textarea" rows="6" spellcheck="false"></textarea>
+                        </div>
+
+                        <div class="execution-meta-bar">
+                            <div class="meta-item">
+                                <span class="meta-label">Status:</span>
+                                <span class="meta-val status-ok" id="sql-status">Ready</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Rows:</span>
+                                <span class="meta-val" id="sql-rows-count">0</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Execution Time:</span>
+                                <span class="meta-val" id="sql-time">0.0 ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Query Result Table -->
+                    <div class="sql-results-card glass-card">
+                        <div class="results-header">
+                            <h4>Query Output</h4>
+                            <span class="results-caption" id="results-caption">No query executed yet</span>
+                        </div>
+                        <div class="table-responsive sql-table-scroll" id="sql-table-container">
+                            <div class="empty-state">
+                                <span>⚡ Select a query preset on the left or press "Run Query"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: DATA EXPLORER ================= -->
+        <section id="tab-explorer" class="tab-pane">
+            <div class="explorer-card glass-card">
+                <div class="explorer-header">
+                    <div>
+                        <h3>Raw Bookings Dataset</h3>
+                        <p>Search, filter, and inspect individual ride booking records from the 103,024 dataset.</p>
+                    </div>
+                    <div class="explorer-search-bar">
+                        <input type="text" id="explorer-search" class="search-input" placeholder="Search by Booking ID, Customer, Location...">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="table-bookings">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Pickup Zone</th>
+                                <th>Drop Zone</th>
+                                <th>Distance</th>
+                                <th>Fare</th>
+                                <th>Payment</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar">
+                    <div class="pagination-info" id="pagination-info">Showing page 1 of ...</div>
+                    <div class="pagination-controls">
+                        <button id="btn-prev-page" class="btn btn-secondary btn-sm" disabled>Previous</button>
+                        <span class="current-page-badge" id="current-page-display">1</span>
+                        <button id="btn-next-page" class="btn btn-secondary btn-sm">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p>OLA Ride Analytics Suite • Designed with High-Performance Python SQLite Engine & Glassmorphism UI</p>
+            <p class="footer-sub">Power BI & SQL Data Analyst Capstone Project • July 2024</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
